@@ -1,7 +1,8 @@
 package repl;
 import java.util.Scanner;
-import token.*;
-import lexer.*;
+import lexer.Lexer;
+import parser.Parser;
+import java.util.ArrayList;
 
 public class Repl {
 	static String PROMPT = ">>";	
@@ -16,14 +17,28 @@ public class Repl {
 				break;
 			}
 			
-			Lexer l = new Lexer(line);
+			lexer.Lexer l = new Lexer(line);
+			parser.Parser p = new Parser(l);
 			
-			Token tok = l.nextToken();
-			while (tok.type != TokenType.EOF) {
-				System.out.println(tok.toString());
-				tok = l.nextToken();
+			ast.Program program = p.parseProgram();
+			if (p.errors().size() > 0) {
+				printParserErrors(p.errors());
+				continue;
 			}
+			
+			if (program != null) {
+				System.out.println(program.string());
+			}
+			
 		}
 		scanner.close();
+	}
+	// imprime los errores del parser
+	static void printParserErrors(ArrayList<String> errors) {
+		System.out.println("Whoops! We ran into some monkey business here!");
+		System.out.println("parser errors:");
+		for (var msg : errors) {
+			System.out.println(msg);
+		}
 	}
 }
