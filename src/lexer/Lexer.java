@@ -166,6 +166,8 @@ public class Lexer {
 				return tok;
 			} else {
 				tok = newToken(TokenType.ILLEGAL, String.valueOf(ch));
+				System.out.println("illegal character: " + ch);
+				System.exit(1);
 			}
 		}
 		readChar();

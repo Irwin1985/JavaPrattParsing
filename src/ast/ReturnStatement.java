@@ -17,6 +17,6 @@ public class ReturnStatement implements Statement {
 	}
 	@Override
 	public String string() {
-		return "return " + returnValue.string();
+		return "return " + returnValue.string() + ";";
 	}
 }

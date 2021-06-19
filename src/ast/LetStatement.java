@@ -18,7 +18,7 @@ public class LetStatement implements Statement {
 	@Override
 	public String string() {
 		var out = new StringBuilder();
-		out.append("let");
+		out.append("let ");
 		out.append(name.string());
 		out.append(" = ");
 		out.append(value.string());

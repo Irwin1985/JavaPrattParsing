@@ -4,10 +4,10 @@ import token.Token;
 public class InfixExpression implements Expression {
 	public Token token;
 	public Expression left;
-	public char operator;
+	public String operator;
 	public Expression right;
 	
-	public InfixExpression(Token token, char operator, Expression left) {
+	public InfixExpression(Token token, String operator, Expression left) {
 		this.token = token;
 		this.operator = operator;
 		this.left = left;

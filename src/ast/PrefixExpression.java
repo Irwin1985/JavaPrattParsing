@@ -6,8 +6,9 @@ public class PrefixExpression implements Expression {
 	public char operator;
 	public Expression right;
 	
-	public PrefixExpression(Token token) {
+	public PrefixExpression(Token token, char operator) {
 		this.token = token;
+		this.operator = operator;
 	}
 	
 	@Override
@@ -21,7 +22,7 @@ public class PrefixExpression implements Expression {
 		var out = new StringBuilder();
 		
 		out.append("(");
-		out.append(" " + operator + " ");
+		out.append(operator);
 		out.append(right.string());
 		out.append(")");
 		

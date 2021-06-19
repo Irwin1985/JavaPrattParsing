@@ -15,6 +15,6 @@ public class ExpressionStatement implements Statement {
 	}
 	@Override
 	public String string() {
-		return expression.string();
+		return expression.string() + ";";
 	}
 }
