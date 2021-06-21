@@ -21,4 +21,8 @@ public class IndexExpression implements Expression {
 	public String string() {
 		return left.string() + "[" + index.string() + "]";
 	}
+	@Override
+	public NodeType type() {
+		return NodeType.INDEX_EXPR;
+	}
 }

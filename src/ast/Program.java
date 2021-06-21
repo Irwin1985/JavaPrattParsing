@@ -23,4 +23,8 @@ public class Program implements Statement {
 		
 		return out.toString();
 	}
+	@Override
+	public NodeType type() {
+		return NodeType.PROGRAM;
+	}
 }

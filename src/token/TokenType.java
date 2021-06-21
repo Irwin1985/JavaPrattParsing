@@ -8,39 +8,44 @@ public enum TokenType {
 	IDENT,	// add, foobar, x, y, ...
 	INT,	// 1243456
 	STRING,	// "hello", 'bye'
-	NULL,
+	NULL,	// 'null'
 	
 	// Operators
-	ASSIGN,
-	PLUS,
-	MINUS,
-	BANG,
-	ASTERISK,
-	SLASH,
+	ASSIGN,		// '='
+	PLUS,		// '+'
+	MINUS,		// '-'
+	BANG,		// '!'
+	ASTERISK,	// '*'
+	SLASH,		// '/'
 	
-	LT,
-	GT,
-	EQ,
-	NOT_EQ,
+	LT,		// '<'
+	LT_EQ,	// '<='
+	GT,		// '>'
+	GT_EQ,	// '>='
+	EQ,		// '=='
+	NOT_EQ,	// '!='
+	POW, 	// '^'
 	
 	// Delimiters
-	COMMA,
-	SEMICOLON,
-	COLON,
+	COMMA,		// ','
+	SEMICOLON,	// ';'
+	COLON,		// ':'
 	
-	LPAREN,
-	RPAREN,
-	LBRACE,
-	RBRACE,
-	LBRACKET,
-	RBRACKET,
+	LPAREN,		// '('
+	RPAREN,		// ')'
+	LBRACE,		// '{'
+	RBRACE,		// '}'
+	LBRACKET,	// '['
+	RBRACKET,	// ']'
 	
 	// keywords
-	FUNCTION,
-	LET,
-	TRUE,
-	FALSE,
-	IF,
-	ELSE,
-	RETURN,
+	FUNCTION,	// 'fn'
+	LET,		// 'let'
+	TRUE,		// 'true'
+	FALSE,		// 'false'
+	IF,			// 'if'
+	ELSE,		// 'else'
+	RETURN,		// 'return'
+	OR,			// '||'
+	AND,		// '&&'
 }

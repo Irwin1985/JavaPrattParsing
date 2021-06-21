@@ -113,11 +113,41 @@ public class Lexer {
 				tok = newToken(TokenType.BANG, "!");
 			}
 			break;
+		case '|':
+			if (peekChar() == '|') {
+				readChar();
+				tok = newToken(TokenType.OR, "||");
+			} else {
+				tok = newToken(TokenType.ILLEGAL, "");
+				System.out.println("syntax error: missing token '|'");
+				System.exit(1);
+			}
+			break;
+		case '&':
+			if (peekChar() == '&') {
+				readChar();
+				tok = newToken(TokenType.AND, "&&");
+			} else {
+				tok = newToken(TokenType.ILLEGAL, "");
+				System.out.println("syntax error: missing token '&'");
+				System.exit(1);
+			}
+			break;
 		case '<':
-			tok = newToken(TokenType.LT, "<");
+			if (peekChar() == '=') {
+				readChar();
+				tok = newToken(TokenType.LT_EQ, "<=");
+			} else {				
+				tok = newToken(TokenType.LT, "<");
+			}
 			break;
 		case '>':
-			tok = newToken(TokenType.GT, ">");
+			if (peekChar() == '=') {
+				readChar();
+				tok = newToken(TokenType.GT_EQ, "<=");
+			} else {				
+				tok = newToken(TokenType.GT, ">");
+			}
 			break;
 		case ';':
 			tok = newToken(TokenType.SEMICOLON, ";");
@@ -141,7 +171,7 @@ public class Lexer {
 			tok = newToken(TokenType.RBRACE, "}");
 			break;
 		case '[':
-			tok = newToken(TokenType.RBRACKET, "[");
+			tok = newToken(TokenType.LBRACKET, "[");
 			break;
 		case ']':
 			tok = newToken(TokenType.RBRACKET, "]");
@@ -149,6 +179,9 @@ public class Lexer {
 		case '"':
 		case '\'':
 			tok = newToken(TokenType.STRING, readString());
+			break;
+		case '^':
+			tok = newToken(TokenType.POW, "^");
 			break;
 		case 0:
 			tok = newToken(TokenType.EOF, "");
@@ -197,7 +230,7 @@ public class Lexer {
 		keywords.put("null", TokenType.NULL);
 		keywords.put("if", TokenType.IF);
 		keywords.put("else", TokenType.ELSE);
-		keywords.put("return", TokenType.RETURN);
+		keywords.put("return", TokenType.RETURN);	
 	}
 	
 	// Busca una palabra reservada o identificador

@@ -20,4 +20,8 @@ public class Identifier implements Expression {
 	public String string() {
 		return token.literal;
 	}
+	@Override
+	public NodeType type() {
+		return NodeType.IDENT;
+	}
 }

@@ -28,4 +28,8 @@ public class PrefixExpression implements Expression {
 		
 		return out.toString();
 	}
+	@Override
+	public NodeType type() {
+		return NodeType.PREFIX_EXPR;
+	}
 }

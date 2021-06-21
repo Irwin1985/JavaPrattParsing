@@ -26,6 +26,10 @@ public class HashLiteral implements Expression {
 			keyValues.add(entry.getKey().string() + ":" + entry.getValue().string());
 		}
 		
-		return String.join(",", keyValues);
+		return "{" + String.join(",", keyValues) + "}";
+	}
+	@Override
+	public NodeType type() {
+		return NodeType.HASH;
 	}
 }

@@ -31,4 +31,8 @@ public class IfExpression implements Expression {
 		
 		return out.toString();
 	}
+	@Override
+	public NodeType type() {
+		return NodeType.IF_EXPR;
+	}
 }

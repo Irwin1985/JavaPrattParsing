@@ -26,5 +26,8 @@ public class LetStatement implements Statement {
 		
 		return out.toString();
 	}
-	
+	@Override
+	public NodeType type() {
+		return NodeType.LET;
+	}	
 }

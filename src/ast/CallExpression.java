@@ -35,4 +35,8 @@ public class CallExpression implements Expression {
 		out.append(")");
 		return out.toString();
 	}
+	@Override
+	public NodeType type() {
+		return NodeType.CALL;
+	}
 }

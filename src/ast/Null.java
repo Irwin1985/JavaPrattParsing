@@ -12,4 +12,8 @@ public class Null implements Expression {
 	public String string() {
 		return "null";
 	}
+	@Override
+	public NodeType type() {
+		return NodeType.NULL;
+	}
 }

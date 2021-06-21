@@ -28,4 +28,8 @@ public class InfixExpression implements Expression {
 		out.append(")");
 		return out.toString();
 	}
+	@Override
+	public NodeType type() {
+		return NodeType.INFIX_EXPR;
+	}
 }

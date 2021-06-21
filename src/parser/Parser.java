@@ -7,17 +7,21 @@ import java.util.HashMap;
 
 public class Parser {
 	static final int LOWEST = 1;
-	static final int EQUALITY = 2;
-	static final int COMPARISON = 3;
-	static final int TERM = 4;
-	static final int FACTOR = 5;
-	static final int PREFIX = 6;
-	static final int CALL = 7;
-	static final int INDEX = 8;
+	static final int LOGIC_OR = 2;
+	static final int LOGIC_AND = 3;
+	static final int EQUALITY = 4;
+	static final int COMPARISON = 5;
+	static final int TERM = 6;
+	static final int FACTOR = 7;
+	static final int POWER = 8;
+	static final int PREFIX = 9;
+	static final int CALL = 10;
+	static final int INDEX = 11;
 	
 	Lexer l;
 	Token curToken;
 	Token peekToken;
+	boolean panicMode = false;
 	ArrayList<String> errors;
 	HashMap<TokenType, Integer> precedences;
 		
@@ -46,9 +50,17 @@ public class Parser {
 			return parseBoolean();
 		case LPAREN:
 			return parseGroupedExpression();
+		case LBRACKET:
+			return parseArrayLiteral();
+		case LBRACE:
+			return parseHashLiteral();
 		case MINUS:
 		case BANG:
 			return parsePrefixExpression();
+		case FUNCTION:
+			return parseFunctionLiteral();
+		case IF:
+			return parseIfExpression();
 		default:
 			var msg = "no prefix parse function for " + curToken.type;
 			errors.add(msg);
@@ -66,8 +78,17 @@ public class Parser {
 		case EQ:
 		case NOT_EQ:
 		case LT:
+		case LT_EQ:
 		case GT:
+		case GT_EQ:
+		case OR:
+		case AND:
+		case POW:
 			return parseInfixExpression(leftExp);
+		case LPAREN:
+			return parseFunctionCall(leftExp);	
+		case LBRACKET:
+			return parseIndexExpression(leftExp);
 		default:
 			var msg = "no infix function found for token: " + type;
 			errors.add(msg);
@@ -79,20 +100,34 @@ public class Parser {
 	void loadPrecedences() {
 		precedences = new HashMap<TokenType, Integer>();
 		
+		precedences.put(TokenType.OR, LOGIC_OR);		// '||'
+		precedences.put(TokenType.AND, LOGIC_AND);		// '&&'
 		precedences.put(TokenType.EQ, EQUALITY);		// '=='
 		precedences.put(TokenType.NOT_EQ, EQUALITY);	// '!='
 		precedences.put(TokenType.LT, COMPARISON); 		// '<'
+		precedences.put(TokenType.LT_EQ, COMPARISON);	// '<='
 		precedences.put(TokenType.GT, COMPARISON);		// '>'
+		precedences.put(TokenType.GT_EQ, COMPARISON);	// '>='
 		precedences.put(TokenType.PLUS, TERM);			// '+'
 		precedences.put(TokenType.MINUS, TERM);			// '-'
 		precedences.put(TokenType.ASTERISK, FACTOR); 	// '*'
 		precedences.put(TokenType.SLASH, FACTOR);		// '/'
+		precedences.put(TokenType.POW, POWER); 			// '^'
 		precedences.put(TokenType.LPAREN, CALL);		// foo()
 		precedences.put(TokenType.LBRACKET, INDEX);		// foo[bar]		
 	}
 	
 	// devuelve la precedencia de curToken
 	int curPrecedence() {
+		switch (curToken.type) {
+		case INT:
+		case STRING:
+		case NULL:
+			errors.add("Syntax Error: invalid infix operand: " + curToken.literal);
+			panicMode = true;
+			return 0;
+		default:
+		}
 		return precedences.getOrDefault(curToken.type, LOWEST);
 	}
 	
@@ -109,6 +144,7 @@ public class Parser {
 		}
 		var msg = "expected token to be " + type + ", got " + curToken.type + " instead.";
 		errors.add(msg);
+		panicMode = true;
 		return false;		
 	}
 	
@@ -137,6 +173,9 @@ public class Parser {
 			var stmt = parseStatement();
 			if (stmt != null) {
 				program.statements.add(stmt);
+			}	
+			if (panicMode) {
+				errorRecovery();
 			}
 			if (curTokenIs(TokenType.SEMICOLON)) {
 				advance(TokenType.SEMICOLON);
@@ -168,6 +207,10 @@ public class Parser {
 		
 		stmt.value = parseExpression(LOWEST);
 		
+		if (stmt.value instanceof ast.FunctionLiteral) {
+			((ast.FunctionLiteral)stmt.value).name = stmt.name.value;
+		}
+		
 		return stmt;
 	}
 	
@@ -184,8 +227,7 @@ public class Parser {
 	// parseExpressionStatement ::= parseExpression
 	ast.ExpressionStatement parseExpressionStatement() {
 		var exp = new ast.ExpressionStatement(curToken);
-		exp.expression = parseExpression(LOWEST);
-		
+		exp.expression = parseExpression(LOWEST);		
 		return exp;
 	}
 	
@@ -193,10 +235,11 @@ public class Parser {
 	ast.Expression parseExpression(int precedence) {
 		var leftExp = getPrefixFunction();
 		if (leftExp == null) {
+			panicMode = true;
 			return null;
 		}
 		
-		while (precedence < curPrecedence()) {
+		while (!panicMode && !curTokenIs(TokenType.EOF) && precedence < curPrecedence()) {
 			var infix = getInfixFunction(leftExp, curToken.type);
 			if (infix == null) {
 				return leftExp;
@@ -232,7 +275,7 @@ public class Parser {
 		expression.right = parseExpression(precedence);
 		
 		return expression;
-	}
+	}	
 	
 	// parseGroupedExpression
 	ast.Expression parseGroupedExpression() {
@@ -241,6 +284,137 @@ public class Parser {
 		advance(TokenType.RPAREN);
 		
 		return exp;
+	}
+	
+	// parseArrayLiteral
+	ast.Expression parseArrayLiteral() {
+		var array = new ast.ArrayLiteral(curToken);
+		array.elements = parseExpressionList(TokenType.LBRACKET, TokenType.RBRACKET);
+		return array;
+	}
+	// parseHashLiteral
+	ast.Expression parseHashLiteral() {
+		var hash = new ast.HashLiteral(curToken);
+		hash.pairs = new HashMap<ast.Expression, ast.Expression>();
+		
+		advance(TokenType.LBRACE);
+		if (!curTokenIs(TokenType.RBRACE)) {
+			var key = parseExpression(LOWEST);
+			advance(TokenType.COLON);
+			var value = parseExpression(LOWEST);
+			hash.pairs.put(key, value);
+
+			while (!curTokenIs(TokenType.EOF) && curTokenIs(TokenType.COMMA)) {
+				advance(TokenType.COMMA);
+				key = parseExpression(LOWEST);
+				advance(TokenType.COLON);
+				value = parseExpression(LOWEST);
+				hash.pairs.put(key, value);
+			}
+		}
+		advance(TokenType.RBRACE);
+		return hash;
+	}
+	
+	// parseFunctionLiteral
+	ast.Expression parseFunctionLiteral() {
+		var funLit = new ast.FunctionLiteral(curToken);
+		
+		advance(TokenType.FUNCTION);		
+		funLit.parameters = parseFunctionParameters();
+		funLit.body = parseBlockStatement();		
+		
+		return funLit;
+	}
+	
+	// parseFunctionCall
+	ast.Expression parseFunctionCall(ast.Expression left) {
+		var call = new ast.CallExpression(curToken, left);
+		call.arguments = parseExpressionList(TokenType.LPAREN, TokenType.RPAREN);		
+		return call;
+	}
+	
+	// parseIfExpression
+	ast.Expression parseIfExpression() {
+		var ifExpr = new ast.IfExpression(curToken);
+		advance(TokenType.IF);
+		
+		advance(TokenType.LPAREN);
+		ifExpr.condition = parseExpression(LOWEST);
+		advance(TokenType.RPAREN);
+		
+		ifExpr.consequence = parseBlockStatement();
+		
+		if (curTokenIs(TokenType.ELSE)) {
+			advance(TokenType.ELSE);
+			ifExpr.alternative = parseBlockStatement();
+		}
+		
+		return ifExpr;
+	}
+	
+	// parseIndexExpression
+	ast.Expression parseIndexExpression(ast.Expression left) {
+		var index = new ast.IndexExpression(curToken, left);
+		advance(TokenType.LBRACKET);
+		if (curTokenIs(TokenType.RBRACKET)) {
+			errors.add("parse error: invalid index expression.");
+			panicMode = true;
+			return null;
+		}		
+		index.index = parseExpression(LOWEST);
+		advance(TokenType.RBRACKET);
+		return index;
+	}
+	
+	// parseExpressionList
+	ArrayList<Expression> parseExpressionList(TokenType open, TokenType close) {
+		var expressions = new ArrayList<Expression>();
+		advance(open);
+		if (!curTokenIs(close)) {
+			expressions.add(parseExpression(LOWEST));
+			while (!curTokenIs(TokenType.EOF) && curTokenIs(TokenType.COMMA)) {
+				advance(TokenType.COMMA);
+				expressions.add(parseExpression(LOWEST));
+			}			
+		}
+		advance(close);
+		return expressions;
+	}
+	
+	// parseFunctionParameters
+	ArrayList<ast.Identifier> parseFunctionParameters() {
+		var params = new ArrayList<ast.Identifier>();
+		advance(TokenType.LPAREN);
+		params.add((ast.Identifier)parseIdentifier());
+		
+		while (!curTokenIs(TokenType.EOF) && curTokenIs(TokenType.COMMA)) {
+			advance(TokenType.COMMA);
+			params.add((ast.Identifier)parseIdentifier());
+		}		
+		advance(TokenType.RPAREN);
+		
+		return params;
+	}
+	
+	// parseBlockStatement
+	ast.BlockStatement parseBlockStatement() {
+		var block = new ast.BlockStatement(curToken);
+		block.statements = new ArrayList<Statement>();
+		
+		advance(TokenType.LBRACE);
+		while (!curTokenIs(TokenType.EOF) && !curTokenIs(TokenType.RBRACE)) {
+			var stmt = parseStatement();
+			if (stmt != null) {
+				block.statements.add(stmt);
+			}
+			if (curTokenIs(TokenType.SEMICOLON)) {
+				advance(TokenType.SEMICOLON);
+			}
+		}
+		advance(TokenType.RBRACE);
+		
+		return block;
 	}
 	
 	// parseIdentifier
@@ -275,5 +449,21 @@ public class Parser {
 		var bool = new ast.Boolean(curToken, curTokenIs(TokenType.TRUE));
 		nextToken();
 		return bool;
+	}
+	
+	// avanza los tokens hasta encontrarse con un ';'
+	void errorRecovery() {
+		while (!curTokenIs(TokenType.EOF)) {
+			if (curTokenIs(TokenType.SEMICOLON)) {
+				return;
+			}
+			switch (curToken.type) {
+			case LET:
+			case RETURN:
+				return; 
+			default:
+				nextToken();
+			}
+		}
 	}
 }

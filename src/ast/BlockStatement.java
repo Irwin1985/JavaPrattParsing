@@ -19,13 +19,17 @@ public class BlockStatement implements Statement {
 	@Override
 	public String string() {
 		StringBuilder out = new StringBuilder();
-		out.append("\n{\n");
+		out.append("{\n");
 		if (statements.size() > 0) {
 			for (var stmt : statements) {
-				out.append(stmt);
+				out.append("  " + stmt.string());
 			}
 		}
 		out.append("\n}\n");
 		return out.toString();
+	}
+	@Override
+	public NodeType type() {
+		return NodeType.BLOCK;
 	}
 }

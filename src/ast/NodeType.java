@@ -1,0 +1,22 @@
+package ast;
+
+public enum NodeType {
+	ARRAY,	
+	BLOCK,
+	BOOLEAN,
+	CALL,
+	EXPR_STMT,
+	FUNCTION,
+	HASH,
+	IDENT,
+	IF_EXPR,
+	INDEX_EXPR,
+	INFIX_EXPR,	
+	INTEGER,	
+	LET,
+	NULL,
+	PREFIX_EXPR,	
+	PROGRAM,
+	RETURN,
+	STRING,
+}

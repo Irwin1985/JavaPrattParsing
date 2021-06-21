@@ -24,6 +24,10 @@ public class ArrayLiteral implements Expression {
 			expressions.add(exp.string());
 		}
 		
-		return String.join(",", expressions);
+		return "[" + String.join(",", expressions) + "]";
+	}
+	@Override
+	public NodeType type() {
+		return NodeType.ARRAY;
 	}
 }

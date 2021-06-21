@@ -19,4 +19,8 @@ public class ReturnStatement implements Statement {
 	public String string() {
 		return "return " + returnValue.string() + ";";
 	}
+	@Override
+	public NodeType type() {
+		return NodeType.RETURN;
+	}
 }

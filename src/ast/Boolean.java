@@ -19,4 +19,8 @@ public class Boolean implements Expression {
 	public String string() {
 		return token.literal;
 	}
+	@Override
+	public NodeType type() {
+		return NodeType.BOOLEAN;
+	}	
 }

@@ -17,4 +17,8 @@ public class ExpressionStatement implements Statement {
 	public String string() {
 		return expression.string() + ";";
 	}
+	@Override
+	public NodeType type() {
+		return NodeType.EXPR_STMT;
+	}
 }

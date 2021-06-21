@@ -17,6 +17,10 @@ public class StringLiteral implements Expression {
 	}
 	@Override
 	public String string() {
-		return token.literal;
+		return "\"" + token.literal + "\"";
+	}
+	@Override
+	public NodeType type() {
+		return NodeType.STRING;
 	}
 }

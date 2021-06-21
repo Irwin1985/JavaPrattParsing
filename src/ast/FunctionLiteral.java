@@ -6,6 +6,7 @@ public class FunctionLiteral implements Expression {
 	public Token token;
 	public ArrayList<Identifier> parameters;
 	public BlockStatement body;
+	public String name;
 	
 	public FunctionLiteral(Token token) {
 		this.token = token;
@@ -20,7 +21,11 @@ public class FunctionLiteral implements Expression {
 	@Override
 	public String string() {
 		var out = new StringBuilder();
-		out.append("fn(");
+		out.append("fn");
+		out.append("(");
+		if (name != null) {
+			out.append(name);
+		}
 		
 		if (parameters.size() > 0) {
 			var params = new ArrayList<String>();
@@ -34,5 +39,9 @@ public class FunctionLiteral implements Expression {
 		out.append(body.string());
 		
 		return out.toString();
+	}
+	@Override
+	public NodeType type() {
+		return NodeType.FUNCTION;
 	}
 }
